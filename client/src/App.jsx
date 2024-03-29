@@ -1,13 +1,12 @@
-
-import './App.css'
+import "./App.css";
+import IndexPage from "./pages/IndexPage";
 
 function App() {
-
   return (
     <>
-     <div className='bg-red-500'>test</div>
+     <IndexPage/>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
