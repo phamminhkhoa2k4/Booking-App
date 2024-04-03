@@ -1,21 +1,49 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 
 const RegisterPage = () => {
-  const [name,setName] = useState("");
-  const [email,setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isRedirect, setIsRedirect] = useState(false);
   const handleRegisterUser = async (e) => {
     e.preventDefault();
-   await axios
-      .post('/register',{name,email,password}).then(() => {
-        alert("Register successfully !!!");
-      }).catch((e) => {
-        alert("register failed " +  e);
-      })
-      
+    if (!name) alert("please enter name !!!");
+    else if (!email) alert("please enter email !!!");
+    else if (!password) alert("please enter password !!!");
+
+    if (name && email && password) {
+      await axios
+        .post("/register", { name, email, password })
+        .then( async ({ data }) => {
+          if (data.statusCode == 0) {
+            alert("Register successfully !!!");
+            setName("");
+            setEmail("");
+            setPassword("");
+            await axios.post("/login", { email, password }).then(() => {
+              setIsRedirect(true);
+            })
+          } else if (data.statusCode == 1) {
+            alert("Already email !!!");
+            setEmail("");
+          } else if (data.statusCode == 2) {
+            alert("Server Error !!!");
+            setName("");
+            setEmail("");
+            setPassword("");
+          }
+        })
+        .catch((e) => {
+          alert("register failed " + e);
+        });
+    }
   };
+
+  if (isRedirect) {
+    return <Navigate to={"/"} />;
+  }
   return (
     <div className="mt-4 grow flex items-center justify-around">
       <div className="mb-32">
