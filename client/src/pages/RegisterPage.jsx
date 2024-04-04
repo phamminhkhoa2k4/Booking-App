@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -9,16 +10,16 @@ const RegisterPage = () => {
   const [isRedirect, setIsRedirect] = useState(false);
   const handleRegisterUser = async (e) => {
     e.preventDefault();
-    if (!name) alert("please enter name !!!");
-    else if (!email) alert("please enter email !!!");
-    else if (!password) alert("please enter password !!!");
+    if (!name) toast.warn("Please Enter Name !!!");
+    else if (!email) toast.warn("Please Enter Email !!!");
+    else if (!password) toast.warn("Please Enter Password !!!");
 
     if (name && email && password) {
       await axios
         .post("/register", { name, email, password })
         .then( async ({ data }) => {
           if (data.statusCode == 0) {
-            alert("Register successfully !!!");
+            toast.success(data.msg);
             setName("");
             setEmail("");
             setPassword("");
@@ -26,7 +27,7 @@ const RegisterPage = () => {
               setIsRedirect(true);
             })
           } else if (data.statusCode == 1) {
-            alert("Already email !!!");
+            toast.error(data.msg);
             setEmail("");
           } else if (data.statusCode == 2) {
             alert("Server Error !!!");
@@ -36,7 +37,7 @@ const RegisterPage = () => {
           }
         })
         .catch((e) => {
-          alert("register failed " + e);
+          toast.error(e);
         });
     }
   };

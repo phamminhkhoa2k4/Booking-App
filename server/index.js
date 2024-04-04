@@ -37,7 +37,7 @@ app.post("/register", async (req, res) => {
         res.json({ statusCode: 2, msg:e });
       });
     }else{
-      res.json({statusCode:1,msg:"Already email !!!"});
+      res.json({ statusCode: 1, msg: "Email Already Exists !!!" });
     }
 });
 
@@ -54,14 +54,14 @@ app.post("/login", async (req, res) => {
             {},
             (err, token) => {
               if (err) throw err;
-              res.cookie("token", token).json({ statusCode: 0, data: user });
+              res.cookie("token", token).json({ statusCode: 0, data: user,msg:"Login Successfully !!!" });
             }
           );
         } else {
-          res.json({ statusCode: 1, msg: "not matching !!!" });
+          res.json({ statusCode: 1, msg: "Password Not Matching !!!" });
         }
       } else {
-        res.json({ statusCode: 2, msg: "not found !!! " });
+        res.json({ statusCode: 2, msg: "Email Does Not Exist !!! " });
       }
     })
     .catch((e) => {

@@ -2,6 +2,7 @@ import axios from "axios";
 import { useContext, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { UserContext } from "../UserContext";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,27 +12,27 @@ const LoginPage = () => {
   const { setUser } = useContext(UserContext);
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email) alert("please enter email !!!");
-    else if (!password) alert("please enter password !!!");
+    if (!email) toast.warn("please enter email !!!");
+    else if (!password) toast.warn("please enter password !!!");
     if (email && password) {
       await axios
         .post("/login", { email, password })
         .then(({ data }) => {
           if (data.statusCode == 0) {
             setUser(data);
-            alert("login successfully !!!");
+            toast.success(data.msg);
             setEmail("");
             setPassword("");
             setIsRedirect(true);
           } else if (data.statusCode == 1) {
-            alert("password or email not matching");
+            toast.error(data.msg);
           } else if (data.statusCode == 2) {
-            alert("account not exist !!!");
+            toast.error(data.msg);
             setEmail("");
             setPassword("");
           }
         })
-        .catch((e) => console.log(e));
+        .catch((e) => toast.error(e));
     }
   };
 
