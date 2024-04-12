@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import Perks from '../components/Perks/Perks'
+import Perks from '../components/Perks/Perks';
 import axios from "axios";
 
 const PlacesPage = () => {
@@ -40,7 +40,21 @@ const PlacesPage = () => {
     setPhotoLink("");
   }
 
- 
+  function uploads(e) {
+    const files = e.target.files;
+    const data = new FormData();
+    for(let i = 0;i < files.length;i++){
+      data.append('photos',files[i]);
+    }
+    axios.post("/uploads",data,{
+      headers:{'Content-Type':'multipart/form-data'}
+    }).then((res) => {
+      const  {data:filenames} = res;
+      setAddedPhotos(prev => {
+        return [...prev,...filenames]
+      })
+    })
+  }
   return (
     <div>
       {action !== "new" && (
@@ -105,10 +119,19 @@ const PlacesPage = () => {
             </div>
             <div className="mt-2 gap-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {addedPhotos.length > 0 &&
-                addedPhotos.map((link) => {
-                  return <img className="rounded-2xl" key={link} src={"http://localhost:4000/uploads/"+ link} alt="" />
+                addedPhotos.map((link,index) => {
+                  return (
+                    <div className="h-32 flex" key={index}>
+                      <img
+                        className="rounded-2xl w-full object-cover"
+                        src={"http://localhost:4000/uploads/" + link}
+                        alt=""
+                      />
+                    </div>
+                  );
                 })}
-              <button className="flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-8 text-2xl text-gray-600">
+              <label className="h-32 cursor-pointer flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-8 text-2xl text-gray-600">
+               <input type="file" className="hidden" onChange={uploads} multiple/>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -124,7 +147,7 @@ const PlacesPage = () => {
                   />
                 </svg>
                 Upload
-              </button>
+              </label>
             </div>
             {preInput("Description", "description of the place")}
             <textarea

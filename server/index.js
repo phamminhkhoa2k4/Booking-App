@@ -5,13 +5,15 @@ const { default: mongoose } = require("mongoose");
 const User = require("./models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const imageDownloader = require('image-downloader')
+const imageDownloader = require("image-downloader");
+const multer = require("multer");
+const fs = require('fs');
 require("dotenv").config();
 const PORT = process.env.PORT || 3000;
 const bcryptSalt = bcrypt.genSaltSync(10);
 const cookieParser = require("cookie-parser");
 const jwtSecret = "fof0md74hj4h5yi4jk";
-app.use('/uploads', express.static(__dirname+ '/uploads'));
+app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -25,22 +27,22 @@ mongoose.connect(process.env.MONGO_URL);
 
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
-  const isEmailExist = await User.findOne({email});
-  if (!isEmailExist){
+  const isEmailExist = await User.findOne({ email });
+  if (!isEmailExist) {
     await User.create({
       name,
       email,
       password: bcrypt.hashSync(password, bcryptSalt),
     })
       .then(() => {
-        res.json({ statusCode: 0, msg: "Register Successfully !!!"  });
+        res.json({ statusCode: 0, msg: "Register Successfully !!!" });
       })
       .catch((e) => {
-        res.json({ statusCode: 2, msg:e });
+        res.json({ statusCode: 2, msg: e });
       });
-    }else{
-      res.json({ statusCode: 1, msg: "Email Already Exists !!!" });
-    }
+  } else {
+    res.json({ statusCode: 1, msg: "Email Already Exists !!!" });
+  }
 });
 
 app.post("/login", async (req, res) => {
@@ -56,7 +58,13 @@ app.post("/login", async (req, res) => {
             {},
             (err, token) => {
               if (err) throw err;
-              res.cookie("token", token).json({ statusCode: 0, data: user,msg:"Login Successfully !!!" });
+              res
+                .cookie("token", token)
+                .json({
+                  statusCode: 0,
+                  data: user,
+                  msg: "Login Successfully !!!",
+                });
             }
           );
         } else {
@@ -85,19 +93,33 @@ app.get("/profile", (req, res) => {
   }
 });
 
-app.post("/logout",(req,res) => {
-  res.cookie('token',"").json(true);
+app.post("/logout", (req, res) => {
+  res.cookie("token", "").json(true);
 });
 
-app.post('/upload-by-link',async (req,res) => {
-  const {link} = req.body;
-  const newName = 'photo' + Date.now() + '.jpg';
+app.post("/upload-by-link", async (req, res) => {
+  const { link } = req.body;
+  const newName = "photo" + Date.now() + ".jpg";
   await imageDownloader.image({
     url: link,
-    dest: __dirname + '/uploads/' + newName
+    dest: __dirname + "/uploads/" + newName,
   });
   res.json(newName);
-})
+});
+
+const photosMiddleware = multer({ dest: "uploads" });
+app.post("/uploads", photosMiddleware.array("photos", 100), (req, res) => {
+  const uploadFiles = [];
+  for(let i = 0;i < req.files.length;i++){
+    const {path,originalname} = req.files[i];
+    const parts = originalname.split('.');
+    const ext = parts[parts.length - 1];
+    const newPath = path + '.' + ext;
+    fs.renameSync(path,newPath);
+    uploadFiles.push(newPath.replace('uploads',''));
+  }
+  res.json(uploadFiles);
+});
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
