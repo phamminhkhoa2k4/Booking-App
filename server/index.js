@@ -9,9 +9,11 @@ const imageDownloader = require("image-downloader");
 const multer = require("multer");
 const fs = require('fs');
 require("dotenv").config();
+const Place = require('./models/Place');
 const PORT = process.env.PORT || 3000;
 const bcryptSalt = bcrypt.genSaltSync(10);
 const cookieParser = require("cookie-parser");
+const { title } = require("process");
 const jwtSecret = "fof0md74hj4h5yi4jk";
 app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(express.json());
@@ -120,6 +122,40 @@ app.post("/uploads", photosMiddleware.array("photos", 100), (req, res) => {
   }
   res.json(uploadFiles);
 });
+
+app.post("/places",(req,res) => {
+  const { token } = req.cookies;
+  const {
+    title,
+    address,
+    photos,
+    description,
+    perks,
+    checkIn,
+    checkOut,
+    maxGuests,
+  } = req.body;
+  if(token) {
+    jwt.verify(token,jwtSecret,{}, async (err,user) => {
+      if(err) throw err;
+      await Place.create({
+        owner:user.id,
+        title,
+        address,
+        photos,
+        description,
+        perks,
+        checkIn,
+        checkOut,
+        maxGuests
+      }).then((data) => {
+        res.json({statusCode: 0,msg:"Add New Place Successfully !!!",data });
+      })
+    })
+  }else{
+    res.json(null);
+  }
+})
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
