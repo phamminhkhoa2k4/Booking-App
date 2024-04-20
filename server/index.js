@@ -7,13 +7,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const imageDownloader = require("image-downloader");
 const multer = require("multer");
-const fs = require('fs');
+const fs = require("fs");
 require("dotenv").config();
-const Place = require('./models/Place');
+const Place = require("./models/Place");
 const PORT = process.env.PORT || 3000;
 const bcryptSalt = bcrypt.genSaltSync(10);
 const cookieParser = require("cookie-parser");
-const { title } = require("process");
 const jwtSecret = "fof0md74hj4h5yi4jk";
 app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(express.json());
@@ -60,13 +59,11 @@ app.post("/login", async (req, res) => {
             {},
             (err, token) => {
               if (err) throw err;
-              res
-                .cookie("token", token)
-                .json({
-                  statusCode: 0,
-                  data: user,
-                  msg: "Login Successfully !!!",
-                });
+              res.cookie("token", token).json({
+                statusCode: 0,
+                data: user,
+                msg: "Login Successfully !!!",
+              });
             }
           );
         } else {
@@ -112,50 +109,117 @@ app.post("/upload-by-link", async (req, res) => {
 const photosMiddleware = multer({ dest: "uploads" });
 app.post("/uploads", photosMiddleware.array("photos", 100), (req, res) => {
   const uploadFiles = [];
-  for(let i = 0;i < req.files.length;i++){
-    const {path,originalname} = req.files[i];
-    const parts = originalname.split('.');
+  for (let i = 0; i < req.files.length; i++) {
+    const { path, originalname } = req.files[i];
+    const parts = originalname.split(".");
     const ext = parts[parts.length - 1];
-    const newPath = path + '.' + ext;
-    fs.renameSync(path,newPath);
-    uploadFiles.push(newPath.replace('uploads',''));
+    const newPath = path + "." + ext;
+    fs.renameSync(path, newPath);
+    uploadFiles.push(newPath.replace("uploads", ""));
   }
   res.json(uploadFiles);
 });
 
-app.post("/places",(req,res) => {
+app.post("/places", (req, res) => {
   const { token } = req.cookies;
   const {
     title,
     address,
-    photos,
+    addedPhotos,
     description,
     perks,
+    extraInfo,
     checkIn,
     checkOut,
     maxGuests,
   } = req.body;
-  if(token) {
-    jwt.verify(token,jwtSecret,{}, async (err,user) => {
-      if(err) throw err;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, user) => {
+      if (err) throw err;
       await Place.create({
-        owner:user.id,
+        owner: user.id,
         title,
         address,
-        photos,
+        photos: addedPhotos,
         description,
         perks,
+        extraInfo,
         checkIn,
         checkOut,
-        maxGuests
+        maxGuests,
       }).then((data) => {
-        res.json({statusCode: 0,msg:"Add New Place Successfully !!!",data });
-      })
-    })
-  }else{
+        res.json({
+          statusCode: 0,
+          msg: "Add New Place Successfully !!!",
+          data,
+        });
+      });
+    });
+  } else {
+    console.log("mnnn");
+    res.json([]);
+  }
+});
+
+app.get("/places", (req, res) => {
+  const { token } = req.cookies;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, user) => {
+      if (err) throw err;
+      await Place.find({ owner: user.id }).then((data) => {
+        res.json(data);
+      });
+    });
+  } else {
     res.json(null);
   }
-})
+});
+
+app.get("/places/:id", async (req, res) => {
+  const { id } = req.params;
+  await Place.findById(id).then((data) => {
+    res.json(data);
+  });
+});
+
+app.put("/places", (req, res) => {
+  const {
+    id,
+    title,
+    address,
+    addedPhotos,
+    description,
+    perks,
+    extraInfo,
+    checkIn,
+    checkOut,
+    maxGuests,
+  } = req.body;
+  const { token } = req.cookies;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, user) => {
+      const data = await Place.findById(id);
+      if (err) throw err;
+      if (data.owner.toString() == user.id) {
+        await Place.findByIdAndUpdate(id, {
+          title,
+          address,
+          photos: addedPhotos,
+          description,
+          perks,
+          extraInfo,
+          checkIn,
+          checkOut,
+          maxGuests,
+        }).then((data) => {
+          res.json({ statusCode: 0, msg: "Updated Successfully !!!", data });
+        });
+      }
+    });
+  } else {
+    res.json(null);
+  }
+});
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });

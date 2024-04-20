@@ -1,11 +1,13 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PhotosUploader from "../components/PhotosUploader/PhotosUploader";
 import Perks from "../components/Perks/Perks";
 import AccountNavigation from "../components/Account Navigation/AccountNavigation";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 const PlacesFormPage = () => {
+  const {id} = useParams();
+  console.log(id);
   const [title, setTitle] = useState("");
   const [address, setAddress] = useState("");
   const [addedPhotos, setAddedPhotos] = useState([]);
@@ -17,6 +19,24 @@ const PlacesFormPage = () => {
   const [maxGuests, setMaxGuests] = useState(1);
   const [isRedirect, setIsRedirect] = useState(false);
 
+  useEffect(() => {
+    if(!id){
+      return;
+    }
+    axios.get('/places/'+id).then(({data}) => {
+      setTitle(data.title);
+      setAddress(data.address);
+      setAddedPhotos(data.photos);
+      setDescription(data.description);
+      setPerks(data.perks);
+      setExtraInfo(data.extraInfo);
+      setCheckIn(data.checkIn);
+      setCheckOut(data.checkOut);
+      setMaxGuests(data.maxGuests);
+    }).catch((error) => {
+      console.log(error);
+    })
+  },[id])
   function inputHeader(text) {
     return <h2 className="text-xl mt-4">{text}</h2>;
   }
@@ -31,7 +51,7 @@ const PlacesFormPage = () => {
       </>
     );
   }
-  const addNewPlace = async (e) => {
+  const savePlace = async (e) => {
     e.preventDefault();
     if (!title) toast.warn("Please Enter Title !!!");
     else if (!address) toast.warn("Please Enter Address !!!");
@@ -43,26 +63,39 @@ const PlacesFormPage = () => {
     else if (!checkOut) toast.warn("Please Enter Time Check Out !!!");
     else if (!maxGuests) toast.warn("Please Enter Max Guests !!!");
     else {
-      await axios
-        .post("/places", {
-          title,
-          address,
-          addedPhotos,
-          description,
-          perks,
-          extraInfo,
-          checkIn,
-          checkOut,
-          maxGuests,
-        })
-        .then(({ data }) => {
-          if(data.statusCode == 0){
-             toast.success(data.msg);
-          }else{
-            toast.error("Error Server !!!")
+       const placesData = {
+         title,
+         address,
+         addedPhotos,
+         description,
+         perks,
+         extraInfo,
+         checkIn,
+         checkOut,
+         maxGuests,
+       };
+      if(id){
+        await axios.put("/places", { id, ...placesData }).then(({ data }) => {
+          if (data.statusCode == 0) {
+            toast.success(data.msg);
+          } else {
+            toast.error("Error Server !!!");
           }
           setIsRedirect(true);
         });
+      }else{
+        await axios
+          .post("/places", placesData)
+          .then(({ data }) => {
+            if (data.statusCode == 0) {
+              toast.success(data.msg);
+            } else {
+              toast.error("Error Server !!!");
+            }
+            setIsRedirect(true);
+          });
+      }
+      
     }
   };
 
@@ -72,7 +105,7 @@ const PlacesFormPage = () => {
   return (
     <div>
       <AccountNavigation />
-      <form onSubmit={addNewPlace}>
+      <form onSubmit={savePlace}>
         {preInput(
           "Title",
           "Title for your place should be short and catchy as in advertisement"
