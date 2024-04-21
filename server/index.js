@@ -230,6 +230,13 @@ app.get("/places", async (req,res) => {
     res.json(data);
   })
 })
+
+app.get("/place/:id", async (req,res) => {
+  const { id } = req.params;
+  await Place.findById(id).then((data) => {
+    res.json(data);
+  })
+})
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
