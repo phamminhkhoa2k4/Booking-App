@@ -17,6 +17,7 @@ const PlacesFormPage = () => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [maxGuests, setMaxGuests] = useState(1);
+  const [price,setPrice] = useState(1);
   const [isRedirect, setIsRedirect] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const PlacesFormPage = () => {
       setCheckIn(data.checkIn);
       setCheckOut(data.checkOut);
       setMaxGuests(data.maxGuests);
+      setPrice(data.price);
     }).catch((error) => {
       console.log(error);
     })
@@ -62,19 +64,21 @@ const PlacesFormPage = () => {
     else if (!checkIn) toast.warn("Please Enter Time Check In !!!");
     else if (!checkOut) toast.warn("Please Enter Time Check Out !!!");
     else if (!maxGuests) toast.warn("Please Enter Max Guests !!!");
+    else if (!price) toast.warn("Please Enter Price !!!");
     else {
-       const placesData = {
-         title,
-         address,
-         addedPhotos,
-         description,
-         perks,
-         extraInfo,
-         checkIn,
-         checkOut,
-         maxGuests,
-       };
-      if(id){
+      const placesData = {
+        title,
+        address,
+        addedPhotos,
+        description,
+        perks,
+        extraInfo,
+        checkIn,
+        checkOut,
+        maxGuests,
+        price,
+      };
+      if (id) {
         await axios.put("/places", { id, ...placesData }).then(({ data }) => {
           if (data.statusCode == 0) {
             toast.success(data.msg);
@@ -83,19 +87,16 @@ const PlacesFormPage = () => {
           }
           setIsRedirect(true);
         });
-      }else{
-        await axios
-          .post("/places", placesData)
-          .then(({ data }) => {
-            if (data.statusCode == 0) {
-              toast.success(data.msg);
-            } else {
-              toast.error("Error Server !!!");
-            }
-            setIsRedirect(true);
-          });
+      } else {
+        await axios.post("/places", placesData).then(({ data }) => {
+          if (data.statusCode == 0) {
+            toast.success(data.msg);
+          } else {
+            toast.error("Error Server !!!");
+          }
+          setIsRedirect(true);
+        });
       }
-      
     }
   };
 
@@ -143,7 +144,7 @@ const PlacesFormPage = () => {
           "Check in&out times",
           "add check in and out times, remember to have some time window for cleaning the room between guests"
         )}
-        <div className=" grid gap-2 sm:grid-cols-3">
+        <div className=" grid gap-2 grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="mt-2 mb-1">Check in time</h3>
             <input
@@ -168,6 +169,15 @@ const PlacesFormPage = () => {
               type="number"
               value={maxGuests}
               onChange={(e) => setMaxGuests(e.target.value)}
+              placeholder="1"
+            />
+          </div>
+          <div>
+            <h3 className="mt-2 mb-1">Price of Place</h3>
+            <input
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
               placeholder="1"
             />
           </div>

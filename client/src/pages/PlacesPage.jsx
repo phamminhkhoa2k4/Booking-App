@@ -8,7 +8,7 @@ const PlacesPage = () => {
   useEffect(() => {
     const asyncPlace = async () => {
       await axios
-        .get("/places")
+        .get("/user-places")
         .then(({ data }) => {
           setPlaces(data);
         })

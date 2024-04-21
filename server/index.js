@@ -132,6 +132,7 @@ app.post("/places", (req, res) => {
     checkIn,
     checkOut,
     maxGuests,
+    price,
   } = req.body;
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, user) => {
@@ -147,6 +148,7 @@ app.post("/places", (req, res) => {
         checkIn,
         checkOut,
         maxGuests,
+        price,
       }).then((data) => {
         res.json({
           statusCode: 0,
@@ -161,7 +163,7 @@ app.post("/places", (req, res) => {
   }
 });
 
-app.get("/places", (req, res) => {
+app.get("/user-places", (req, res) => {
   const { token } = req.cookies;
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, user) => {
@@ -194,6 +196,7 @@ app.put("/places", (req, res) => {
     checkIn,
     checkOut,
     maxGuests,
+    price,
   } = req.body;
   const { token } = req.cookies;
   if (token) {
@@ -211,6 +214,7 @@ app.put("/places", (req, res) => {
           checkIn,
           checkOut,
           maxGuests,
+          price,
         }).then((data) => {
           res.json({ statusCode: 0, msg: "Updated Successfully !!!", data });
         });
@@ -220,6 +224,12 @@ app.put("/places", (req, res) => {
     res.json(null);
   }
 });
+
+app.get("/places", async (req,res) => {
+  await Place.find().then((data) => {
+    res.json(data);
+  })
+})
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
