@@ -57,7 +57,7 @@ const PlacePage = () => {
   }
   return (
     <div className="mt-4 bg-gray-100 -mx-8 px-8 pt-8">
-      <h1 className="text-2xl">{place.title}</h1>
+      <h1 className="text-3xl font-bold">{place.title}</h1>
       <a
         className=" flex gap-1 my-4  font-semibold underline"
         target="_blank"

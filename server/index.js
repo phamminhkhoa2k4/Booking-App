@@ -13,6 +13,7 @@ const Place = require("./models/Place");
 const PORT = process.env.PORT || 3000;
 const bcryptSalt = bcrypt.genSaltSync(10);
 const cookieParser = require("cookie-parser");
+const Booking = require("./models/Booking");
 const jwtSecret = "fof0md74hj4h5yi4jk";
 app.use("/uploads", express.static(__dirname + "/uploads"));
 app.use(express.json());
@@ -249,6 +250,23 @@ app.delete("/places",(req,res) => {
         await Place.findByIdAndDelete(id).then((data) => {
           res.json({statusCode:0,msg:`Delete Successfully !!!`, data})
         })
+      }
+    })
+  }else{
+    res.json(null);
+  }
+})
+
+app.post("/booking",(req,res) => {
+  const {token} = req.cookies;
+  const {place,checkIn,checkOut,numberOfGuests,name,phone,price} = req.body;
+  if(token){
+    jwt.verify(token,jwtSecret,{}, async (err,user) => {
+      if(err) throw err;
+      if(user){
+        await Booking.create({place,checkIn,checkOut,numberOfGuests,name,phone,price}).then((data) => {
+          res.json({statusCode:0,msg:"Booking Successfully !!!",data});
+        }).catch((err) => console.log(err))
       }
     })
   }else{
