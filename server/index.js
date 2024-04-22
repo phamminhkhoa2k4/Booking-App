@@ -237,6 +237,24 @@ app.get("/place/:id", async (req,res) => {
     res.json(data);
   })
 })
+
+
+app.delete("/places",(req,res) => {
+  const {token} = req.cookies;
+  const {id} = req.body;
+  if(token){
+    jwt.verify(token,jwtSecret,{}, async (err,user) => {
+      if(err) throw err;
+      if(id){
+        await Place.findByIdAndDelete(id).then((data) => {
+          res.json({statusCode:0,msg:`Delete Successfully !!!`, data})
+        })
+      }
+    })
+  }else{
+    res.json(null);
+  }
+})
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);
 });
