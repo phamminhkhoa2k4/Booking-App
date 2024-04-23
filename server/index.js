@@ -264,7 +264,7 @@ app.post("/booking",(req,res) => {
     jwt.verify(token,jwtSecret,{}, async (err,user) => {
       if(err) throw err;
       if(user){
-        await Booking.create({place,checkIn,checkOut,numberOfGuests,name,phone,price}).then((data) => {
+        await Booking.create({place,user:user.id,checkIn,checkOut,numberOfGuests,name,phone,price}).then((data) => {
           res.json({statusCode:0,msg:"Booking Successfully !!!",data});
         }).catch((err) => console.log(err))
       }
@@ -272,6 +272,25 @@ app.post("/booking",(req,res) => {
   }else{
     res.json(null);
   }
+})
+
+
+
+function getUserDataFromToken(req){
+   return new Promise((resolve,reject) =>{
+    jwt.verify(req.cookies.token,jwtSecret,{},(err,user) => {
+      if(err) throw err;
+      resolve(user);
+    })
+   })
+}
+
+app.get('/bookings', async (req,res) => {
+  await getUserDataFromToken(req).then( async (user) => {
+    await Booking.find({user:user.id}).populate('place').then((data) => {
+      res.json(data);
+    })
+  })
 })
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);

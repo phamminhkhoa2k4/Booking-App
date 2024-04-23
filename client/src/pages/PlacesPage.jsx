@@ -3,6 +3,7 @@ import AccountNavigation from "../components/Account Navigation/AccountNavigatio
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import PlaceImg from "../components/Place Img/PlaceImg";
 
 
 const PlacesPage = () => {
@@ -67,11 +68,7 @@ const PlacesPage = () => {
                 >
                   <div className="flex w-60 h-32 bg-gray-300 rounded-lg overflow-hidden">
                     {place.photos.length > 0 && (
-                      <img
-                        className="object-cover w-full"
-                        src={"http://localhost:4000/uploads/" + place.photos[0]}
-                        alt=""
-                      />
+                      <PlaceImg place={place}/>
                     )}
                   </div>
                   <div className="">
